@@ -1,11 +1,15 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven3'
+    }
+
     environment {
         IMAGE_NAME = "student-app"
         IMAGE_TAG  = "${env.BUILD_NUMBER}"
         CONTAINER_NAME = "student-app-container"
-        APP_PORT = "8080"
+        HOST_PORT = "8082"
     }
 
     stages {
@@ -38,7 +42,7 @@ pipeline {
             steps {
                 sh """
                     docker rm -f ${CONTAINER_NAME} || true
-                    docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:8080 ${IMAGE_NAME}:latest
+                    docker run -d --name ${CONTAINER_NAME} -p ${HOST_PORT}:8080 ${IMAGE_NAME}:latest
                 """
             }
         }
@@ -47,14 +51,14 @@ pipeline {
             steps {
                 sh """
                     sleep 5
-                    curl --fail http://localhost:${APP_PORT}/health
+                    curl --fail http://localhost:${HOST_PORT}/health
                 """
             }
         }
     }
 
     post {
-        success { echo "Pipeline completed successfully. App is running on port ${APP_PORT}." }
+        success { echo "Pipeline completed successfully. App is running on port ${HOST_PORT}." }
         failure { echo 'Pipeline failed. Check the stage logs above.' }
     }
 }
